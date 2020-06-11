@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "897306859861",
+    "firebase_url": "https://conquali-rn-712d3.firebaseio.com",
+    "project_id": "conquali-rn-712d3",
+    "storage_bucket": "conquali-rn-712d3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:897306859861:android:01f3e499fb00b342",
+        "android_client_info": {
+          "package_name": "com.marvidac.conquali"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "897306859861-tcnvblp75426bdslrp6uffk4j5b4f68h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEkWNtz4A7WKs5CBHTmnC38Uoe0vro9PU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "897306859861-tcnvblp75426bdslrp6uffk4j5b4f68h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
