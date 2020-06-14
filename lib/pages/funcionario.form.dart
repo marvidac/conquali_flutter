@@ -1,14 +1,15 @@
 import 'package:conquali_flutter/model/funcionario.dart';
+import 'package:conquali_flutter/service/firebase.service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:conquali_flutter/pages/funcionario.list.dart';
 
 class FuncionarioForm extends StatefulWidget {
   
   //Será passado como parâmetro para o statfull
-  Funcionario param;
+  DocumentSnapshot param;
 
-  FuncionarioForm({Key key, this.param}) : super(key: key);
+  FuncionarioForm({this.param}) {
+  }
 
   @override
   _FuncionarioFormState createState() => _FuncionarioFormState(param: this.param);
@@ -19,8 +20,10 @@ enum SingingCharacter { ativo, inativo }
 
 class _FuncionarioFormState extends State<FuncionarioForm> {
 
+  FirebaseService _firebaseServiceFuncionario;
+
   //Valor passado por parametro
-  Funcionario param;
+  DocumentSnapshot param;
   
   //Key criada para exibir SnackBar quando necessário
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
@@ -34,13 +37,14 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
   //Definindo controller para textinput
   final _nomeController = TextEditingController();
 
-
-
   //Construtor para receber parâmetro da lista
   _FuncionarioFormState({@required this.param}){
 
-    this._nomeController.text = this.param.nome;
-    _status = this.param.status?SingingCharacter.ativo:SingingCharacter.inativo;
+    /*this._nomeController.text = this.param["nome"];
+    _status = this.param["status"]?SingingCharacter.ativo:SingingCharacter.inativo;*/
+
+    //Serviço de sincronismo com o Firebase
+    this._firebaseServiceFuncionario = new FirebaseService('funcionario');
 
   }
 
@@ -141,10 +145,27 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
                 //Coleta dados pra salvar no Firebase
                 Funcionario funcionario = new Funcionario(
                     nome: this._nomeController.text,
-                    status: this._status.index == 0 ? true : false);
-                setState(() {
-                  loading: true;
-                });
+                    status: this._status.index == 0 ? true : false,
+                );
+                
+
+                if(this.param!=null) {
+                DocumentReference reference = this.param.reference;
+                  reference.setData({
+                    "nome": this._nomeController.text,
+                    "status": this._status.index == 0 ? true : false
+                  });
+                  this._firebaseServiceFuncionario.save(this.param);
+                } else {
+                  this._firebaseServiceFuncionario.saveMap(funcionario.toMap())
+                  .then( (data) {
+                    this.param = data;
+                  }).catchError((onError) {
+                    print(onError);
+                  });
+                 
+                }
+                
                 //Efetuando inserção do funcionário no Firebase
                 Firestore.instance.collection("funcionario").add(funcionario.toMap())
                     .then((data) {
