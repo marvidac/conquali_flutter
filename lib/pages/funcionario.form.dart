@@ -1,12 +1,12 @@
-import 'package:conquali_flutter/model/funcionario.dart';
-import 'package:conquali_flutter/service/firebase.service.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:conquali_flutter/model/funcionario.dart';
+import 'package:conquali_flutter/service/funcionario.service.dart';
+
 
 class FuncionarioForm extends StatefulWidget {
   
   //Será passado como parâmetro para o statfull
-  DocumentSnapshot param;
+  Map param;
 
   FuncionarioForm({this.param}) {
   }
@@ -19,12 +19,15 @@ class FuncionarioForm extends StatefulWidget {
 enum SingingCharacter { ativo, inativo }
 
 class _FuncionarioFormState extends State<FuncionarioForm> {
+  Map param;
 
-  FirebaseService _firebaseServiceFuncionario;
+  FuncionarioService funcionarioService;
+  //Construtor para receber parâmetro da lista
+  _FuncionarioFormState({this.param}) {
+      this.funcionarioService = FuncionarioService();
+      this.param = param;
+  }
 
-  //Valor passado por parametro
-  DocumentSnapshot param;
-  
   //Key criada para exibir SnackBar quando necessário
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
@@ -36,18 +39,6 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
 
   //Definindo controller para textinput
   final _nomeController = TextEditingController();
-
-  //Construtor para receber parâmetro da lista
-  _FuncionarioFormState({@required this.param}){
-
-    /*this._nomeController.text = this.param["nome"];
-    _status = this.param["status"]?SingingCharacter.ativo:SingingCharacter.inativo;*/
-
-    //Serviço de sincronismo com o Firebase
-    this._firebaseServiceFuncionario = new FirebaseService('funcionario');
-
-  }
-
 
   //Função para criar snackbar
   _showSnackBar(texto) {
@@ -141,49 +132,6 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
           children: <Widget>[
             //Construindo Botão SALVAR com Icon, Texto e animação de click
             InkWell(
-              onTap: () {
-                //Coleta dados pra salvar no Firebase
-                Funcionario funcionario = new Funcionario(
-                    nome: this._nomeController.text,
-                    status: this._status.index == 0 ? true : false,
-                );
-                
-
-                if(this.param!=null) {
-                DocumentReference reference = this.param.reference;
-                  reference.setData({
-                    "nome": this._nomeController.text,
-                    "status": this._status.index == 0 ? true : false
-                  });
-                  this._firebaseServiceFuncionario.save(this.param);
-                } else {
-                  this._firebaseServiceFuncionario.saveMap(funcionario.toMap())
-                  .then( (data) {
-                    this.param = data;
-                  }).catchError((onError) {
-                    print(onError);
-                  });
-                 
-                }
-                
-                //Efetuando inserção do funcionário no Firebase
-                Firestore.instance.collection("funcionario").add(funcionario.toMap())
-                    .then((data) {
-                    print(data.documentID);
-                    _showSnackBar("Dados salvos com sucesso.");
-                  setState(() {
-                    _loading: false;
-                  });
-
-                }).catchError((onError) {
-                    _showSnackBar('Erro ao tentar salvar.');
-                  setState(() {
-                    _loading: false;
-                  });
-                });
-
-                
-              },
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.45,
                 child: Column(
@@ -200,6 +148,24 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
                   ],
                 ),
               ),
+               onTap: () {
+                //Coleta dados pra salvar no Firebase
+                Funcionario funcionario = new Funcionario(
+                    nome: this._nomeController.text,
+                    status: this._status.index == 0 ? true : false,
+                    created: new DateTime.now().toString(),
+                );
+
+                int documentId;
+                this.funcionarioService.insert(funcionario.toMap())
+                .then((retorno) {
+                  documentId = retorno;
+                  this._showSnackBar("Dados salvos com sucesso.");
+                }).catchError((onError) {
+                  this._showSnackBar(onError);
+                });
+
+              },
             ),
             Container(
               color: Colors.blueGrey[200],
