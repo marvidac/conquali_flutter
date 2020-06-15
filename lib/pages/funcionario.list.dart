@@ -80,7 +80,7 @@ class _FuncionarioListState extends State<FuncionarioList> {
                 subtitle: Text(created != null ? df.format(created):" "),
                 trailing: PopupMenuButton<ListAction>(
                   onSelected: (ListAction result) {
-                    if(ListAction.edit==result) { quebrando aqui
+                    if("ListAction.edit"==result.toString()) {
                       Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => FuncionarioForm(param: item,)),

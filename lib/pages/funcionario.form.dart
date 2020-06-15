@@ -20,12 +20,18 @@ enum SingingCharacter { ativo, inativo }
 
 class _FuncionarioFormState extends State<FuncionarioForm> {
   Map param;
-
+  
   FuncionarioService funcionarioService;
   //Construtor para receber parâmetro da lista
   _FuncionarioFormState({this.param}) {
       this.funcionarioService = FuncionarioService();
       this.param = param;
+
+      //Setando campos na construção da classe apartir do parâmetro enviado
+      if(this.param != null) {
+        this._nomeController.text = this.param['nome'];
+        this._status = this.param['nome'] == 1 ? SingingCharacter.ativo : SingingCharacter.inativo;
+      }
   }
 
   //Key criada para exibir SnackBar quando necessário
