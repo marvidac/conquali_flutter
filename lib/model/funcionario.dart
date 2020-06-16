@@ -1,4 +1,7 @@
-class Funcionario {
+import 'package:conquali_flutter/sql/entity.dart';
+import 'dart:convert' as convert;
+
+class Funcionario extends Entity {
   int id;
   String nome;
   bool status;
@@ -23,6 +26,12 @@ class Funcionario {
         "nome": nome,
         "status": status,
         "created": created,
-      };
+   };
+
+   @override
+  String toJson() {
+    String json = convert.json.encode(toMap());
+    return json;
+  }
   
 }
