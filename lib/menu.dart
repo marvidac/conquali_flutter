@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:conquali_flutter/pages/funcionario.list.dart';
+import 'package:conquali_flutter/pages/funcionario_list.dart';
+import 'package:conquali_flutter/pages/equipe_list.dart';
 
 class Menu extends StatelessWidget {
   const Menu({
@@ -32,6 +33,11 @@ class Menu extends StatelessWidget {
           ListTile(
             title: Text("Equipe"),
             trailing: Icon(Icons.arrow_forward),
+            onTap: () {
+              Navigator.push(
+                context, MaterialPageRoute(builder: (context) => EquipeList()),
+              );
+            }
           ),
           
         ],

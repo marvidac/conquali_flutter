@@ -1,22 +1,22 @@
 import 'dart:math';
-import 'package:conquali_flutter/model/funcionario.dart';
-import 'package:conquali_flutter/dao/funcionario_dao.dart';
+import 'package:conquali_flutter/model/equipe.dart';
+import 'package:conquali_flutter/dao/equipe_dao.dart';
 import 'package:flutter/material.dart';
-import 'package:conquali_flutter/pages/funcionario.form.dart';
+import 'package:conquali_flutter/pages/equipe_form.dart';
 
 //Lista para ser exibida no botão de ação da lista de registros
 enum ListAction { edit, delete }
 
-class FuncionarioList extends StatefulWidget {
-  FuncionarioList({Key key}) : super(key: key);
+class EquipeList extends StatefulWidget {
+  EquipeList({Key key}) : super(key: key);
 
   @override
-  _FuncionarioListState createState() => _FuncionarioListState();
+  _EquipeListState createState() => _EquipeListState();
 }
 
-class _FuncionarioListState extends State<FuncionarioList> {
-  FuncionarioDao funcionarioDao = new FuncionarioDao();
-  List<Funcionario> listaFuncionarios;
+class _EquipeListState extends State<EquipeList> {
+  EquipeDao equipeDao = new EquipeDao();
+  List<Equipe> listaEquipes;
   int qtdeRegistros = 0;
 
   //Key criada para exibir SnackBar quando necessário
@@ -24,33 +24,33 @@ class _FuncionarioListState extends State<FuncionarioList> {
 
   void initState() {
     super.initState();
-    _getFuncionarios();
+    _getEquipes();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Funcionários"),
+        title: Text("Equipes"),
       ),
       body: _body(context),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () {
-          //this._salvarFuncionario();
+          //this._salvarEquipe();
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => FuncionarioForm()),
+            MaterialPageRoute(builder: (context) => EquipeForm()),
           );
         },
       ),
     );
   }
 
-  void _getFuncionarios() async {
-    await funcionarioDao.findAll().then((funcs) {
+  void _getEquipes() async {
+    await equipeDao.findAll().then((funcs) {
       setState(() {
-        listaFuncionarios = funcs;
+        listaEquipes = funcs;
         qtdeRegistros = funcs.length;
       });
     }).catchError((onError) {
@@ -58,8 +58,8 @@ class _FuncionarioListState extends State<FuncionarioList> {
     });
   }
 
-  bool _delete(Funcionario funcionario) {
-    this.funcionarioDao.delete(funcionario.id)
+  bool _delete(Equipe equipe) {
+    this.equipeDao.delete(equipe.id)
     .then((tmp) {
       return tmp;
         
@@ -72,7 +72,7 @@ class _FuncionarioListState extends State<FuncionarioList> {
 
   Key _gerarKey() {
     //Atualizando a lista de movientações
-    _getFuncionarios();
+    _getEquipes();
 
     //GErando nova key para o flutter atualiza o widget (gambiarra)
     return new Key(Random(10000000).toString());
@@ -102,7 +102,7 @@ class _FuncionarioListState extends State<FuncionarioList> {
                 key: _gerarKey(),
                 itemCount: qtdeRegistros,
                 itemBuilder: (context, index) {
-                  Funcionario func = listaFuncionarios[index];
+                  Equipe func = listaEquipes[index];
                   return Card(
                     elevation: 5,
                     child: ListTile(
@@ -113,7 +113,7 @@ class _FuncionarioListState extends State<FuncionarioList> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => FuncionarioForm(
+                                  builder: (context) => EquipeForm(
                                         param: func,
                                       )),
                             );
@@ -150,7 +150,7 @@ class _FuncionarioListState extends State<FuncionarioList> {
 
                                                     ////Deletar registro e atualizar lista
                                                     if(_delete(func)) {
-                                                      this._getFuncionarios();
+                                                      this._getEquipes();
                                                     }
                                                     
 

@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:conquali_flutter/model/funcionario.dart';
-import 'package:conquali_flutter/dao/funcionario_dao.dart';
-import 'package:conquali_flutter/pages/funcionario.list.dart';
+import 'package:conquali_flutter/model/equipe.dart';
+import 'package:conquali_flutter/dao/equipe_dao.dart';
+import 'package:conquali_flutter/pages/equipe_list.dart';
 
-class FuncionarioForm extends StatefulWidget {
-  final Funcionario param;
+class EquipeForm extends StatefulWidget {
+  final Equipe param;
 
-  FuncionarioForm({Key key, this.param}) : super(key: key);
+  EquipeForm({Key key, this.param}) : super(key: key);
 
   @override
-  _FuncionarioFormState createState() => _FuncionarioFormState();
+  _EquipeFormState createState() => _EquipeFormState();
 }
 
 ////Possíveis valores para seleção de status
 enum SingingCharacter { ativo, inativo }
 
-class _FuncionarioFormState extends State<FuncionarioForm> {
-  Funcionario get funcionario => widget.param;
+class _EquipeFormState extends State<EquipeForm> {
+  Equipe get equipe => widget.param;
 
   //Key criada para exibir SnackBar quando necessário
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   //Objeto para persistência
-  FuncionarioDao funcionarioDao = new FuncionarioDao();
+  EquipeDao equipeDao = new EquipeDao();
 
   //Controller do campo de texto
   final _nomeController = TextEditingController();
@@ -31,10 +31,10 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
   SingingCharacter _status = SingingCharacter.ativo;
 
   void initState() {
-    if (this.funcionario != null) {
+    if (this.equipe != null) {
       setState(() {
-        _nomeController.text = this.funcionario.nome;
-        _status= this.funcionario.status == true ? SingingCharacter.ativo : SingingCharacter.inativo;
+        _nomeController.text = this.equipe.nome;
+        _status= this.equipe.status == true ? SingingCharacter.ativo : SingingCharacter.inativo;
       });
     }
   }
@@ -45,7 +45,7 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-          title: Text("Cadastro de Funcionário"),
+          title: Text("Cadastro de Equipe"),
         ),
         body: _body(context),
         bottomNavigationBar: _bottomBar(context),
@@ -141,14 +141,14 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
             ),
             onTap: () {
               //Coleta dados pra salvar no Firebase
-              Funcionario funcionario = new Funcionario(
+              Equipe equipe = new Equipe(
                 id: widget.param == null ? null : widget.param.id,
                 nome: this._nomeController.text,
                 status: this._status.index == 0 ? true : false,
                 created: new DateTime.now().toString(),
               );
 
-              funcionarioDao.save(funcionario).then((tmp) {
+              equipeDao.save(equipe).then((tmp) {
                 if (tmp != null) this._showSnackBar("Dados salvos com sucesso.");
               }).catchError((onError) {
                 this._showSnackBar('Erro ao tentar salvar. Informe: $onError');
@@ -193,20 +193,5 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
     );
 
     _scaffoldKey.currentState.showSnackBar(snackBar);
-  }
-
-  _salvarFuncionario() {
-    //Simulando inserção para testar listagem
-    Funcionario func1 = new Funcionario.fromMap({
-      "nome": "Funcionário salsi 2",
-      "status": true,
-      "created": DateTime.now().toString()
-    });
-
-    funcionarioDao.save(func1);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => FuncionarioList()),
-    );
   }
 }

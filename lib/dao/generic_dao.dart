@@ -19,9 +19,7 @@ abstract class GenericDao<T extends Entity> {
 
   Future<List<T>> query(String sql, [List<dynamic> arguments]) async {
     final dbClient = await db;
-    
     final list = await dbClient.rawQuery(sql, arguments);
-
     return list.map<T>((json) => fromMap(json)).toList();
   }
 
