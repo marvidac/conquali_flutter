@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:conquali_flutter/pages/funcao_list.dart';
 import 'package:conquali_flutter/pages/funcionario_list.dart';
 import 'package:conquali_flutter/pages/equipe_list.dart';
 
@@ -20,6 +21,15 @@ class Menu extends StatelessWidget {
                 child: Text("A",
                 style: TextStyle(fontSize: 40.0),),
             ),
+          ),
+          ListTile(
+            title: Text("Função"),
+            trailing: Icon(Icons.arrow_forward),
+            onTap: () {
+              Navigator.push(
+                context, MaterialPageRoute(builder: (context) => FuncaoList()),
+              );
+            }
           ),
           ListTile(
             title: Text("Funcionário"),

@@ -1,36 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:conquali_flutter/model/funcionario.dart';
 import 'package:conquali_flutter/model/funcao.dart';
-import 'package:conquali_flutter/dao/funcionario_dao.dart';
 import 'package:conquali_flutter/dao/funcao_dao.dart';
+import 'package:conquali_flutter/pages/funcao_list.dart';
 
-class FuncionarioForm extends StatefulWidget {
-  final Funcionario param;
+class FuncaoForm extends StatefulWidget {
+  final Funcao param;
 
-  FuncionarioForm({Key key, this.param}) : super(key: key);
+  FuncaoForm({Key key, this.param}) : super(key: key);
 
   @override
-  _FuncionarioFormState createState() => _FuncionarioFormState();
+  _FuncaoFormState createState() => _FuncaoFormState();
 }
 
 ////Possíveis valores para seleção de status
 enum SingingCharacter { ativo, inativo }
 
-class _FuncionarioFormState extends State<FuncionarioForm> {
-  Funcionario get funcionario => widget.param;
-
-  Funcao _funcao = new Funcao();
-
-  String _funcaoSelected = null;
-  List<String> _listFuncoes = [];
-  List<Funcao> _listaDeFuncoes = [];
+class _FuncaoFormState extends State<FuncaoForm> {
+  Funcao get funcao => widget.param;
 
   //Key criada para exibir SnackBar quando necessário
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   //Objeto para persistência
-  FuncionarioDao funcionarioDao = new FuncionarioDao();
-  
   FuncaoDao funcaoDao = new FuncaoDao();
 
   //Controller do campo de texto
@@ -40,45 +31,12 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
   SingingCharacter _status = SingingCharacter.ativo;
 
   void initState() {
-    if (this.funcionario != null) {
+    if (this.funcao != null) {
       setState(() {
-        _nomeController.text = this.funcionario.nome;
-        _status= this.funcionario.status == true ? SingingCharacter.ativo : SingingCharacter.inativo;
-        //_funcaoSelected = this.funcionario.funcao.nome;
+        _nomeController.text = this.funcao.nome;
+        _status= this.funcao.status == true ? SingingCharacter.ativo : SingingCharacter.inativo;
       });
     }
-    
-    this._getFuncoes();
-  }
-
-  _getFuncoes() {
-    this.funcaoDao.findAllByStatus(true)
-    .then((retorno) {
-      List<String> tmp = [];
-      List<Funcao> tmpF = [];
-
-      retorno.forEach((f) {
-
-        //Setando o valor inicial do select para prevenir erro na abertura da tela
-        if(this.funcionario == null && tmp.length == 0 && this._funcaoSelected==null) {
-          setState(() {
-            _funcaoSelected = f.nome;
-          });
-        }
-
-        tmp.add(f.nome);
-        tmpF.add(f);
-      });
-
-//      retorno.map((funcao) => tmp.add(funcao.id.toString()) );
-      
-      setState(() {
-        this._listFuncoes = tmp;
-        this._listaDeFuncoes = tmpF;
-      });
-    }).catchError((onError){
-      print(onError);
-    });
   }
 
   @override
@@ -87,7 +45,7 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-          title: Text("Cadastro de Funcionário"),
+          title: Text("Cadastro de Função"),
         ),
         body: _body(context),
         bottomNavigationBar: _bottomBar(context),
@@ -104,16 +62,6 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
             controller: this._nomeController,
             decoration: InputDecoration(
                 border: OutlineInputBorder(), labelText: 'Nome'),
-          ),
-
-          Row(
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(right: 30),
-              child: Text("Função"),),
-            _dropdownButton(),
-
-            ],
           ),
           //Container com label status
           Container(
@@ -150,7 +98,7 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
                     value: SingingCharacter.inativo,
                     groupValue: _status,
                     onChanged: (SingingCharacter value) {
-                       setState(() {
+                      setState(() {
                         _status = value;
                       });
                     }),
@@ -165,43 +113,6 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
         ],
       ),
     );
-  }
-
-  DropdownButton<String> _dropdownButton() {
-    return DropdownButton<String>(
-            value: this._funcaoSelected,
-            icon: Icon(Icons.arrow_downward),
-            iconSize: 24,
-            elevation: 16,
-            style: TextStyle(color: Colors.deepPurple),
-            underline: Container(
-              height: 2,
-              color: Colors.deepPurpleAccent,
-            ),
-            onChanged: (String newValue) {
-              setState(() {
-                this._funcaoSelected = newValue;
-              });
-            },
-            items: this._listFuncoes
-                .map<DropdownMenuItem<String>>((String value) {
-                  
-
-                  //Buscando Função pelo nome
-                  this._listaDeFuncoes.map((item) {
-                    if(item.nome == this._funcaoSelected) {
-                      setState(() {
-                        this._funcao = item;
-                      });
-                    }
-                  });
-
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-          );
   }
 
   Container _bottomBar(BuildContext context) {
@@ -230,15 +141,14 @@ class _FuncionarioFormState extends State<FuncionarioForm> {
             ),
             onTap: () {
               //Coleta dados pra salvar no Firebase
-              Funcionario funcionario = new Funcionario(
+              Funcao funcao = new Funcao(
                 id: widget.param == null ? null : widget.param.id,
                 nome: this._nomeController.text,
-                funcao: this._funcao.id,
                 status: this._status.index == 0 ? true : false,
                 created: new DateTime.now().toString(),
               );
 
-              funcionarioDao.save(funcionario).then((tmp) {
+              funcaoDao.save(funcao).then((tmp) {
                 if (tmp != null) this._showSnackBar("Dados salvos com sucesso.");
               }).catchError((onError) {
                 this._showSnackBar('Erro ao tentar salvar. Informe: $onError');

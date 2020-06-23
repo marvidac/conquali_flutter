@@ -30,8 +30,12 @@ class DatabaseHelper {
   }
 
   void _onCreate(Database db, int newVersion) async {
+    String dateTime = DateTime.now().toString();
     await db.execute('CREATE TABLE funcao(id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, status BOOL, created TEXT NOT NULL)');
-    await db.execute('CREATE TABLE funcionario(id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, funcao INTEGER NOT NULL, status BOOL, FOREIGN KEY(funcao) REFERENCES funcao(id), created TEXT NOT NULL)');
+    await db.execute("INSERT INTO funcao(nome, status, created) values('Pedreiro',1,'$dateTime')");
+    await db.execute("INSERT INTO funcao(nome, status, created) values('Servente',1,'$dateTime')");
+    await db.execute("INSERT INTO funcao(nome, status, created) values('Mestre de Obras',1,'$dateTime')");
+    await db.execute('CREATE TABLE funcionario(id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, funcao INTEGER NOT NULL, status BOOL, created TEXT NOT NULL, FOREIGN KEY(funcao) REFERENCES funcao(id))');
     await db.execute('CREATE TABLE equipe(id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, status BOOL, created TEXT NOT NULL)');
     await db.execute('CREATE TABLE equipe_funcionario(id INTEGER PRIMARY KEY AUTOINCREMENT, equipe INTEGER NOT NULL, funcionario INTEGER NOT NULL, created TEXT NOT NULL, FOREIGN KEY(equipe) REFERENCES equipe(id), FOREIGN KEY(funcionario) REFERENCES funcionario(id) )');
     await db.execute('CREATE TABLE local(id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, status BOOL, created TEXT NOT NULL)');
