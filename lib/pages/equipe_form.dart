@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:conquali_flutter/model/equipe.dart';
+import 'package:conquali_flutter/model/funcionario.dart';
+import 'package:conquali_flutter/model/equipe_funcionario.dart';
 import 'package:conquali_flutter/dao/equipe_dao.dart';
+import 'package:conquali_flutter/dao/funcionario_dao.dart';
+import 'package:conquali_flutter/dao/equipe_funcionario_dao.dart';
 import 'package:conquali_flutter/pages/equipe_list.dart';
+import 'package:multiselect_formfield/multiselect_formfield.dart';
 
 class EquipeForm extends StatefulWidget {
   final Equipe param;
@@ -17,12 +22,20 @@ enum SingingCharacter { ativo, inativo }
 
 class _EquipeFormState extends State<EquipeForm> {
   Equipe get equipe => widget.param;
+  EquipeFuncionario equipeFuncionario = EquipeFuncionario();
+
+  List _listaDeFuncionariosArray = [];
+  List _funcionariosSelecionados = [];
+  List _listaDeEquipeFuncionarios = [];
 
   //Key criada para exibir SnackBar quando necessário
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final formKey = new GlobalKey<FormState>();
 
   //Objeto para persistência
-  EquipeDao equipeDao = new EquipeDao();
+  EquipeDao equipeDao = EquipeDao();
+  FuncionarioDao funcionarioDao = FuncionarioDao();
+  EquipeFuncionarioDao equipeFuncionarioDao = EquipeFuncionarioDao();
 
   //Controller do campo de texto
   final _nomeController = TextEditingController();
@@ -34,9 +47,50 @@ class _EquipeFormState extends State<EquipeForm> {
     if (this.equipe != null) {
       setState(() {
         _nomeController.text = this.equipe.nome;
-        _status= this.equipe.status == true ? SingingCharacter.ativo : SingingCharacter.inativo;
+        _status = this.equipe.status == true
+            ? SingingCharacter.ativo
+            : SingingCharacter.inativo;
+      });
+
+      //Buscar todos registros relacionados à equipe
+      this.equipeFuncionarioDao.findAllByEquipe(this.equipe.id).then((lista) {
+        lista.map((ef) {
+          this._listaDeEquipeFuncionarios.add({
+            "id": ef.id,
+            "equipe": ef.equipe,
+            "funcionario": ef.funcionario
+          });
+        });
+
+        lista.map((ef) {
+          this.funcionarioDao.findById(ef.funcionario).then((func) {
+            this
+                ._listaDeFuncionariosArray
+                .add({"id": func.id, "nome": func.nome});
+          });
+        });
       });
     }
+
+    this._getFuncionarios();
+  }
+
+  _getFuncionarios() {
+    this.funcionarioDao.findAllByStatus(true).then((retorno) {
+      List tmpF = [];
+
+      retorno.forEach((f) {
+        tmpF.add({"id": f.id, "nome": f.nome});
+      });
+
+//      retorno.map((funcao) => tmp.add(funcao.id.toString()) );
+
+      setState(() {
+        this._listaDeFuncionariosArray = tmpF;
+      });
+    }).catchError((onError) {
+      print(onError);
+    });
   }
 
   @override
@@ -63,6 +117,48 @@ class _EquipeFormState extends State<EquipeForm> {
             decoration: InputDecoration(
                 border: OutlineInputBorder(), labelText: 'Nome'),
           ),
+
+          Row(children: <Widget>[
+            Expanded(
+              child: Center(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: <Widget>[
+                        Container(
+                          padding: EdgeInsets.all(16),
+                          child: MultiSelectFormField(
+                            autovalidate: false,
+                            titleText: 'Funcionários',
+                            validator: (value) {
+                              if (value == null || value.length == 0) {
+                                return 'Selecione um ou mais';
+                              }
+                              return null;
+                            },
+                            dataSource: this._listaDeFuncionariosArray,
+                            textField: 'nome',
+                            valueField: 'id',
+                            okButtonLabel: 'OK',
+                            cancelButtonLabel: 'CANCEL',
+                            // required: true,
+                            hintText: 'Selecione um ou mais',
+                            initialValue: this._funcionariosSelecionados,
+                            onSaved: (value) {
+                              if (value == null) return;
+                              setState(() {
+                                this._funcionariosSelecionados = value;
+                              });
+                            },
+                          ),
+                        ),
+                      ]),
+                ),
+              ),
+            ),
+          ]),
+
           //Container com label status
           Container(
             alignment: Alignment.centerLeft,
@@ -148,11 +244,37 @@ class _EquipeFormState extends State<EquipeForm> {
                 created: new DateTime.now().toString(),
               );
 
-              equipeDao.save(equipe).then((tmp) {
-                if (tmp != null) this._showSnackBar("Dados salvos com sucesso.");
+              bool podeExibirMsg = false;
+              Equipe equipeSalva = null;
+              equipeDao
+                  .save(equipe, this._funcionariosSelecionados)
+                  .then((tmp) {
+                if (tmp != null) {
+                  equipeSalva = Equipe();
+                  equipeSalva.id = tmp;
+                }
               }).catchError((onError) {
                 this._showSnackBar('Erro ao tentar salvar. Informe: $onError');
               });
+
+              if (equipeSalva != null) {
+                //Salvando EquipeFuncionario
+                this._funcionariosSelecionados.map((obj) {
+                  EquipeFuncionario ef = EquipeFuncionario();
+                  ef.equipe = equipeSalva.id;
+                  ef.funcionario = obj[0];
+
+                  this.equipeFuncionarioDao.save(ef).then((ef) {
+                    podeExibirMsg = true;
+                  }).catchError((onError) {
+                    podeExibirMsg = true;
+                    this._showSnackBar('Erro ao tentar salvar. $onError');
+                  });
+                });
+
+                if (podeExibirMsg)
+                  this._showSnackBar("Dados salvos com sucesso.");
+              }
             },
           ),
           Container(

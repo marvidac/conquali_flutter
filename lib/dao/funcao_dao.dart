@@ -10,9 +10,16 @@ class FuncaoDao extends GenericDao<Funcao> {
     return Funcao.fromMap(map);
   }
 
-  Future<List<Funcao>> findAllByStatus(bool status) {
+  Future<List<Funcao>> findAllByStatus(bool status) async {
     int done = status ? 1 : 0;
-    return query('select * from $tableName where status = ?', [done]);
+    return await query('select * from $tableName where status = ?', [done]);
   }
+
+  Future<Funcao> findByNome(String nome) async {
+    List<Funcao> list = await query("select * from $tableName where nome LIKE '%Servente%' ");
+    return list.length > 0 ? list.first : null;
+  }
+
+
 
 }
